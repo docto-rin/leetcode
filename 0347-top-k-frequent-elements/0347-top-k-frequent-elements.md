@@ -264,7 +264,7 @@ class Solution:
                 select_recursive(pivot_index + 1, right, target)
 
         def select_iterative(left, right, target):
-            while left <= right:
+            while left < right:
                 pivot_index = random.randint(left, right)
                 pivot_index = partition(left, right, pivot_index)
                 if pivot_index == target:
