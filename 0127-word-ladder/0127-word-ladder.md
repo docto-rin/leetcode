@@ -240,22 +240,13 @@ class WordNeighbors:
     def add(self, word):
         for pattern in self._get_patterns(word):
             self.pattern_to_words[pattern].append(word)
-    
-    def get_neighbors(self, word):
+        
+    def get_neighbors_with_pruning(self, word):
         for pattern in self._get_patterns(word):
             for neighbor in self.pattern_to_words[pattern]:
                 if neighbor == word:
                     continue
                 yield neighbor
-        
-    def get_and_clear_neighbors(self, word):
-        seen = set()
-        for pattern in self._get_patterns(word):
-            neighbors = self.pattern_to_words.get(pattern, [])
-            for neighbor in neighbors:
-                if neighbor != word and neighbor not in seen:
-                    seen.add(neighbor)
-                    yield neighbor
             self.pattern_to_words[pattern] = []
 
 
@@ -280,7 +271,7 @@ class Solution:
             count += 1
             
             for frontier in frontiers:
-                for neighbor in word_neighbors.get_neighbors(frontier):
+                for neighbor in word_neighbors.get_neighbors_with_pruning(frontier):
                     if neighbor == endWord:
                         return count + 1
                     if neighbor in visited:
