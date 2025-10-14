@@ -56,4 +56,30 @@ class Solution:
 
 ## Step 3
 
-[実装1](#実装1)
+### 実装2
+
+やっぱり、dequeを使った方が省メモリに実装できることに気づき、書き直しました。
+
+```python3
+from collections import deque
+
+
+class Solution:
+    def maxDepth(self, root: Optional[TreeNode]) -> int:
+        def append_if_exists(node, nodes):
+            if node is not None:
+                nodes.append(node)
+        
+        depth = 0
+        frontiers = deque()
+        append_if_exists(root, frontiers)
+        while frontiers:
+            depth += 1
+            depth_size = len(frontiers)
+            for _ in range(depth_size):
+                node = frontiers.popleft()
+                append_if_exists(node.left, frontiers)
+                append_if_exists(node.right, frontiers)
+        
+        return depth
+```
