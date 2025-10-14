@@ -2,7 +2,7 @@
 
 - 問題文
   - 2分木の根`root`を与えられ、その最大の深さを返す問題。
-  - The number of nodes in the tree is in the range [0, 104].
+  - The number of nodes in the tree is in the range [0, 10^4].
 
 ### 実装1
 
