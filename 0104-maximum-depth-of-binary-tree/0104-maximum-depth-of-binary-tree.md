@@ -54,8 +54,6 @@ class Solution:
     - コードを書いた方は帰りがけでmax_depthを完成させる方法が発想できず苦戦したということだと思いますが、逆に行きがけでmax_depthを作ってしまうコードが面白いと感じました。
     - レビュワーの論点としては、nonlocal depthは不要ということですかね。それはたしかに、行きがけ、帰りがけどちらでmax_depthを完成させるにしても不要に見えます。
 
-## Step 3
-
 ### 実装2
 
 やっぱり、dequeを使った方が省メモリに実装できることに気づき、書き直しました。
@@ -80,6 +78,87 @@ class Solution:
                 node = frontiers.popleft()
                 append_if_exists(node.left, frontiers)
                 append_if_exists(node.right, frontiers)
+        
+        return depth
+```
+
+GPT-5に[実装2](#実装)を見てもらったところ、ヘルパー関数がオーバーヘッドに見合ってないから不要という意見をもらった。
+
+比較のためマイクロベンチマークを実施する
+
+```python3
+import timeit
+
+setup = """
+from collections import deque
+
+def helper_append_if_not_none(node, q):
+    if node is not None:
+        q.append(node)
+
+def bench_with_helper(N=100000):
+    q = deque()
+    node = object()
+    for _ in range(N):
+        helper_append_if_not_none(node, q)
+
+def bench_inline(N=100000):
+    q = deque()
+    node = object()
+    for _ in range(N):
+        if node is not None:
+            q.append(node)
+"""
+
+print("with helper:",
+      timeit.timeit("bench_with_helper()", setup=setup, number=10))
+print("inline     :",
+      timeit.timeit("bench_inline()", setup=setup, number=10))
+```
+
+```
+>>> with helper: 0.05975887505337596
+>>> inline     : 0.01755612506531179
+```
+
+たしかに、同じ処理なのにこの程度の関数化で3倍遅くなるのは厳しい気がした。
+
+また、for構文、for `target_list` in `starred_expression_list`において、`starred_expression_list`は1回だけ評価されるとのこと。
+
+https://docs.python.org/3/reference/compound_stmts.html#the-for-statement
+
+```python3
+depth_size = len(frontiers)
+for _ in range(depth_size):
+```
+
+なので、この部分は1行にまとめてよさそう。forループ内でのlen(frontiers)の変化は関係ない。
+
+
+## Step 3
+
+### 実装3
+
+```python3
+from collections import deque
+
+
+class Solution:
+    def maxDepth(self, root: Optional[TreeNode]) -> int:
+        if root is None:
+            return 0
+        
+        depth = 0
+        frontiers = deque()
+        frontiers.append(root)
+        while frontiers:
+            depth += 1
+            for _ in range(len(frontiers)):
+                node = frontiers.popleft()
+                if node.left is not None:
+                    frontiers.append(node.left)
+                if node.right is not None:
+                    frontiers.append(node.right)
         
         return depth
 ```
