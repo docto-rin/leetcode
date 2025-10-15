@@ -282,3 +282,76 @@ class Solution:
             frontiers = next_frontiers
         return 0
 ```
+
+## Step 4
+
+復習として後日やり直した。
+
+### 実装4
+
+pattern_to_words方式 + 双方向BFS
+
+```python3
+from collections import defaultdict
+
+
+class WordNeighbors:
+    def __init__(self):
+        self.pattern_to_words = defaultdict(list)
+    
+    def _get_patterns(self, word):
+        for i in range(len(word)):
+            yield (word[:i], word[i + 1 :])
+    
+    def register(self, word):
+        for pattern in self._get_patterns(word):
+            self.pattern_to_words[pattern].append(word)
+    
+    def get_neighbors(self, word):
+        for pattern in self._get_patterns(word):
+            for neighbor in self.pattern_to_words[pattern]:
+                if neighbor == word:
+                    continue
+                yield neighbor
+
+
+class Solution:
+    def ladderLength(self, beginWord: str, endWord: str, wordList: List[str]) -> int:
+        if endWord not in wordList:
+            return 0
+        
+        word_neighbors = WordNeighbors()
+        for word in [beginWord] + wordList:
+            word_neighbors.register(word)
+        
+        progress = 1
+        frontiers_from_start = [beginWord]
+        frontiers_from_end = [endWord]
+        visited_from_start = {beginWord}
+        visited_from_end = {endWord}
+
+        while frontiers_from_start and frontiers_from_end:
+            if len(frontiers_from_start) > len(frontiers_from_end):
+                frontiers_from_start, frontiers_from_end = (
+                    frontiers_from_end,
+                    frontiers_from_start
+                )
+                visited_from_start, visited_from_end = (
+                    visited_from_end,
+                    visited_from_start
+                )
+            
+            next_frontiers = []
+            for word in frontiers_from_start:
+                for neighbor in word_neighbors.get_neighbors(word):
+                    if neighbor in visited_from_end:
+                        return progress + 1
+                    if neighbor in visited_from_start:
+                        continue
+                    next_frontiers.append(neighbor)
+                    visited_from_start.add(neighbor)
+            frontiers_from_start = next_frontiers
+            progress += 1
+
+        return 0
+```
