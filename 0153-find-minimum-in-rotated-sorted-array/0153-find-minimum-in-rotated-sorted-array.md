@@ -57,7 +57,7 @@ class Solution:
 - first, lastを番兵にとった、未確定域が開区間型(left, last)といえる。
 - 別処理が冗長な気がするので、不変条件の考え方が微妙な可能性がある。
   - nums[first], nums[last]のうち、注目するのは一方で良かった。
-  - nums[first]を絡めると別処理が必要になる（[実装5](#実装5)）。nums[last]だけで考えると別処理は不要（[実装6](#実装6)）。
+  - nums[first]を絡めると別処理が必要になる（[実装5](#実装5)）。nums[last]だけで考えると別処理は不要（[実装2](#実装2)や[実装6](#実装6)）。
 
 ### 実装2
 
@@ -101,9 +101,6 @@ import bisect
 
 class Solution:
     def findMin(self, nums: List[int]) -> int:
-        if nums[0] <= nums[-1]:
-            return nums[0]
-
         min_index = bisect.bisect_left(nums, 1, key=lambda x: x <= nums[-1])
         return nums[min_index]
 ```
@@ -145,9 +142,6 @@ class BinaryView(collections.abc.Sequence):
 
 class Solution:
     def findMin(self, nums: List[int]) -> int:
-        if nums[0] <= nums[-1]:
-            return nums[0]
-
         view = BinaryView(nums, pivot=nums[-1])
         min_index = bisect.bisect_left(view, 1)
         return nums[min_index]
