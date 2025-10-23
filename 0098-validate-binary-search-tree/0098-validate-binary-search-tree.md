@@ -131,23 +131,24 @@ class Solution:
       - これ、当たり前なはずですが、自分はしばしばiterativeで書き直すことに苦労してます。
   - Q. recursiveをiterativeに直す汎用的な方法はありますか？
     - > A. 「再帰→反復」変換の汎用テンプレ（色付きスタック）
-      ```python3
-      WHITE, GRAY = 0, 1  # WHITE: これから展開, GRAY: 再訪(処理点)
-      stack = [(WHITE, root)]
-      while stack:
-          color, node = stack.pop()
-          if node is None:
-              continue
-          if color == WHITE:
-              # preorder: 自分→子 の順にしたいなら、(GRAY, node) を最初に積む
-              stack.append((WHITE, node.right))
-              stack.append((GRAY, node))            # inorderにしたければここで GRAY を挟む
-              stack.append((WHITE, node.left))
-              # postorder: 子→自分 の順にしたいなら (GRAY, node) を最後に積む
-          else:
-              # ここが「訪問（処理）」の場所。pre/in/post は積む順序で決まる
-              pass
-      ```
+
+    ```python3
+    WHITE, GRAY = 0, 1  # WHITE: これから展開, GRAY: 再訪(処理点)
+    stack = [(WHITE, root)]
+    while stack:
+        color, node = stack.pop()
+        if node is None:
+            continue
+        if color == WHITE:
+            # preorder: 自分→子 の順にしたいなら、(GRAY, node) を最初に積む
+            stack.append((WHITE, node.right))
+            stack.append((GRAY, node))            # inorderにしたければここで GRAY を挟む
+            stack.append((WHITE, node.left))
+            # postorder: 子→自分 の順にしたいなら (GRAY, node) を最後に積む
+        else:
+            # ここが「訪問（処理）」の場所。pre/in/post は積む順序で決まる
+            pass
+    ```
   - Q. 色（フラグ）なしで汎用的に表現できますか？
     - > * **可能**ですが、完全に統一した 1 つのループ骨格で pre/in/post を切り替えるには、
       >   * 上のような**push 順序の工夫**（pre/in/post で順序だけ変える）、
