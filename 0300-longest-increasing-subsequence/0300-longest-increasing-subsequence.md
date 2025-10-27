@@ -218,7 +218,7 @@ from bisect import bisect_left
 class Solution:
     def lengthOfLIS(self, nums: List[int]) -> int:
         min_tails = []
-        # min_tails[i] is minimum of tail of length i subsequences
+        # min_tails[i] is minimum of tail of length i + 1 subsequences
         for num in nums:
             next_length = bisect_left(min_tails, num) + 1
             if next_length > len(min_tails):
