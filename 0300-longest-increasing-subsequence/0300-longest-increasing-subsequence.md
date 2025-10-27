@@ -175,7 +175,7 @@ class Solution:
             return 0
 
         min_tails = []
-        # min_tails[i] is minimum of tail of length i subsequences
+        # min_tails[i] is minimum of tail of length i + 1 subsequences
         min_tails_index = []
         # min_tails_index[i] is the index of min_tails[i] in nums
         previous_index = [-1] * len(nums)
