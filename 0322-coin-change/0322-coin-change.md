@@ -99,7 +99,8 @@ class Solution:
   - https://discord.com/channels/1084280443945353267/1226508154833993788/1307706069648146462
     - > 下の遅くなっている原因を >= に直したとすると、
     - 訪問済みを距離とboolの2つの配列で管理していることも混乱の一因かと思った。
-    - seen[sum_val] and num_coins > amount_to_needed_coin[sum_val]で、andじゃなくてorなら助かってはいた。
+    - ~~seen[sum_val] and num_coins > amount_to_needed_coin[sum_val]で、andじゃなくてorなら助かってはいた。~~
+      - 追記：この修正方法は誤りでした。不等号の誤りが根本的な問題。
   - https://discord.com/channels/1084280443945353267/1245404801177616394/1303611194795626557
     - > (コインの価格が十分に近いと Queue の中身は)、2^n で増えていきます。
 
