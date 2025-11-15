@@ -299,3 +299,53 @@ class Solution:
 
         return sign * value
 ```
+
+## Step 4
+
+### 実装5
+
+- 他言語互換的に符号つき32bit整数を守って実装。
+- [実装3](#実装3)のoverflow処理を改善
+
+```python3
+class Solution:
+    INT_MAX = 2**31 - 1
+    INT_MIN = -2**31
+    
+    def myAtoi(self, s: str) -> int:
+        i, n = 0, len(s)
+
+        # skip spaces
+        while i < n and s[i] == " ":
+            i += 1
+        if i == n:
+            return 0
+        
+        # determine sign
+        if s[i] == "-":
+            sign = -1
+            i += 1
+        elif s[i] == "+":
+            sign = 1
+            i += 1
+        else:
+            sign = 1
+        
+        # read digits
+        value = 0
+        while i < n and s[i].isdecimal():
+            digit_abs = int(s[i])
+            # check overflow
+            if sign == -1:
+                # value < math.ceil((self.INT_MIN + digit_abs) / 10)
+                if value < (self.INT_MIN + digit_abs + 10 - 1) // 10:
+                    return self.INT_MIN
+            else:
+                # value > math.floor((self.INT_MAX - digit_abs) / 10)
+                if value > (self.INT_MAX - digit_abs) // 10:
+                    return self.INT_MAX
+            value = value * 10 + sign * digit_abs
+            i += 1
+        
+        return value
+```
