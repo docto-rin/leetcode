@@ -160,6 +160,10 @@ def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) ->
 
 番兵なしでもこのくらいコンパクトになります。どう思いますか？
 
+- LLMレビューの感想
+  - Noneチェックに関しては、両方Noneは不要だった。
+  - 後処理でtail.next = node1 or node2も確かにコンパクトで良い気がする。
+
 - [コメント集](https://docs.google.com/document/d/11HV35ADPo9QxJOpJQ24FcZvtvioli770WWdZZDaLOfg/edit?tab=t.0#heading=h.a32zb9r43ryo)
   - https://discord.com/channels/1084280443945353267/1206101582861697046/1217743406927970304
     - https://github.com/colorbox/leetcode/pull/5
@@ -293,70 +297,6 @@ C++での実装。主なコメント：
 - **ファイル分割**: ステップごとにファイルを分けるとレビューしやすい。
 - **インデント**: 修正が必要。
 
-**Q:** 1個目のトピックに関連して、pythonでの参照やポインタ周りはどうなっているか整理してくれますか？
-
-
-**A:**
-Pythonでの参照・ポインタ周りを整理します。
-
-**Pythonの変数は「名前」であり「箱」ではない**
-
-Pythonには「ポインタ」も「参照渡し」も厳密には存在しません。すべての変数は**オブジェクトへの参照（名札）**です。
-
-```python
-a = [1, 2, 3]
-b = a          # bはaと同じオブジェクトを指す（コピーではない）
-b.append(4)
-print(a)       # [1, 2, 3, 4] — 同じオブジェクトなので変わる
-```
-
-**関数への引数渡し: "pass by object reference"**
-
-C++の「値渡し」「参照渡し」どちらとも違い、**オブジェクトへの参照を値渡し**しています：
-
-```python
-def modify(lst):
-    lst.append(4)    # 元のオブジェクトを変更 → 呼び出し元に影響
-    lst = [9, 9, 9]  # ローカル変数lstを別オブジェクトに再束縛 → 呼び出し元に影響なし
-
-x = [1, 2, 3]
-modify(x)
-print(x)  # [1, 2, 3, 4]
-```
-
-**LinkedListの文脈で**
-
-今回の問題で `node1 = node1.next` としたとき：
-- `node1` というローカル変数が別のオブジェクト（次のノード）を指すようになるだけ
-- 元のリスト構造は変わらない
-
-一方 `tail.next = to_add` は：
-- `tail` が指すオブジェクトの `.next` 属性を変更
-- 元のリスト構造が変わる（in-place変更）
-
-**C++との対比**
-
-| C++ | Python |
-|-----|--------|
-| `ListNode* p = q;` | `p = q` （参照のコピー） |
-| `p->next = q;` | `p.next = q` （オブジェクトの属性変更） |
-| `*p = *q;` | 直接対応なし（オブジェクト自体の上書きはできない） |
-| `ListNode& ref = node;` | 概念なし（すべてが参照のようなもの） |
-
-**immutableとmutableの違い**
-
-```python
-def try_change(n, lst):
-    n = 100        # intはimmutable → 新オブジェクト作成、元に影響なし
-    lst[0] = 100   # listはmutable → 元のオブジェクトが変わる
-
-x, y = 1, [1, 2]
-try_change(x, y)
-print(x, y)  # 1, [100, 2]
-```
-
-Pythonは「すべてがオブジェクト参照」という一貫したモデルなので、C++のポインタ/参照の区別より単純ですが、mutable/immutableの違いを意識することが重要です。
-
 ### 実装2
 
 - リファクタ内容
@@ -379,6 +319,8 @@ class Solution:
         tail.next = bigger
         return dummy.next
 ```
+
+- これはいいなぁと思った。選択肢として使えるようになりたい。
 
 ## Step 3
 
