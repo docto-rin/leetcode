@@ -324,7 +324,7 @@ class Solution:
             tail = tail.next
             smaller = smaller.next
         
-        tail.next = bigger
+        tail.next = bigger or smaller
         return dummy.next
 ```
 
