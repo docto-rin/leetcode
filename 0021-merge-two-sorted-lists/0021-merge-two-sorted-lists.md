@@ -259,3 +259,133 @@ class Solution:
 ## Step 3
 
 [実装2](#実装2)
+
+## Step 4
+
+レビューコメント：https://github.com/docto-rin/leetcode/pull/62
+
+**Q:** それぞれについて、もう少し詳しく教えて。
+
+
+**A:**
+それぞれの論点について詳しく説明します。
+
+---
+
+**1. 認知負荷**
+
+`if list1 is None or list2 is None: return list1 or list2` を読むとき、頭の中で以下を確認する必要があります：
+
+| list1 | list2 | 条件部 | 返り値 |
+|-------|-------|--------|--------|
+| None | None | True | `None or None` → None ✓ |
+| None | X | True | `None or X` → X ✓ |
+| X | None | True | `X or None` → X ✓ |
+| X | X | False | （通過） ✓ |
+
+一方、分けて書くと：
+
+```python
+if list1 is None: return list2
+if list2 is None: return list1
+```
+
+各行が「list1がNoneなら、list2を返す」「list2がNoneなら、list1を返す」と自然言語で読めます。組み合わせを考える必要がなく、各行が独立して理解できます。
+
+---
+
+**2. `__bool__` 問題**
+
+Pythonの `or` は「最初のtruthyな値」を返します：
+
+```python
+0 or 5      # → 5 (0はfalsy)
+"" or "hi"  # → "hi" (空文字はfalsy)
+None or []  # → [] (Noneはfalsy)
+```
+
+問題は、カスタムクラスが `__bool__` を定義している場合です：
+
+```python
+class ListNode:
+    def __init__(self, val=0, next=None): self.val, self.next = val, next
+    def __bool__(self): return self.val != 0  # val=0ならFalse扱い
+
+node_zero = ListNode(0)
+node_five = ListNode(5)
+
+node_zero or node_five  # → node_five（node_zeroがFalse扱いされる！）
+```
+
+本来 `node_zero` を返してほしいのに、`val=0` だと `False` 扱いになり `node_five` が返されてしまいます。
+
+LeetCodeの `ListNode` は `__bool__` を定義していないので大丈夫ですが、レビュー時に「このクラスは `__bool__` を定義していないか？」と確認する手間が生じます。
+
+安全に書くなら：
+
+```python
+tail.next = bigger if bigger is not None else smaller
+```
+
+または：
+
+```python
+if bigger is not None: tail.next = bigger
+else: tail.next = smaller
+```
+
+---
+
+**3. 言語間の移植性**
+
+Pythonの `or` は「値を返す」：
+
+```python
+a or b  # aがtruthyならa、そうでなければb
+```
+
+C++の `||` は「bool値を返す」：
+
+```cpp
+a || b  // true または false
+```
+
+そのため、C++で同様のことをするには三項演算子を使います：
+
+```cpp
+tail->next = node1 ? node1 : node2;
+```
+
+Javaも同様に `||` は boolean を返すので：
+
+```java
+tail.next = (node1 != null) ? node1 : node2;
+```
+
+面接で「普段はPythonだけどC++で書いてください」と言われた場合、`or` のイディオムがそのまま使えないことを意識しておく必要があります。また、チームに複数言語を使う人がいる場合、Python特有のイディオムは混乱を招く可能性があります。
+
+---
+
+どれも「書ける」ことと「書くべきか」は別、という話ですね。コンテキストに応じて判断するのが良さそうです。
+
+### 実装3
+
+```python
+class Solution:
+    def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:        
+        smaller = list1
+        bigger = list2
+        dummy = tail = ListNode()
+        while smaller is not None and bigger is not None:
+            if smaller.val > bigger.val:
+                smaller, bigger = bigger, smaller
+            tail.next = smaller
+            tail = tail.next
+            smaller = smaller.next
+        
+        if bigger is not None:
+            tail.next = bigger
+        else:
+            tail.next = smaller
+        return dummy.next
+```
