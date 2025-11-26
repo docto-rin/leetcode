@@ -370,6 +370,9 @@ tail.next = (node1 != null) ? node1 : node2;
 
 ### 実装3
 
+- レビューを受けて書き直し。
+  - bigger or smallerは避ける。
+
 ```python
 class Solution:
     def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:        
