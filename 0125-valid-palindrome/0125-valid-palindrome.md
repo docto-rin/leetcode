@@ -292,6 +292,10 @@ def isPalindrome(self, s: str) -> bool:
 
 何か気になるPRがあれば、詳しく見ていきましょうか？
 
+- そのほか、コードを見た感想
+  - https://github.com/huyfififi/coding-challenges/pull/5
+    - step1_bの方法はシンプルで良いと思った。-> [実装3](#実装3)
+
 ### 実装3
 
 - リファクタ内容（[実装2](#実装2)をベースに改良）
