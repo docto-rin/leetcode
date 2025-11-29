@@ -155,10 +155,10 @@ class Solution:
   - https://github.com/thonda28/leetcode/pull/12
   - https://github.com/NobukiFukui/Grind75-ProgrammingTraining/pull/22
 
-**Q:** 上記に他の人が解いたPRをまとめています。それぞれのPRの代表的なソリューションとレビューコメントをチェックし、PRごとの内容を簡潔にまとめてください。
+🙋**Q:** 上記に他の人が解いたPRをまとめています。それぞれのPRの代表的なソリューションとレビューコメントをチェックし、PRごとの内容を簡潔にまとめてください。
 
 
-**A:**
+🤖**A:**
 各PRを確認しますね。
 
 各PRの内容をまとめました：
@@ -339,84 +339,12 @@ class Solution:
 
 自分のPR：https://github.com/docto-rin/leetcode/pull/66
 
-**Q:** 単なる Binary Tree 向けの別解について、リファクタして丁寧に書いてください。なお、三項演算子は使わないようにし、ノードがNoneどうかについては、 if ... is not Noneを使用してください 
-
-
-**A:**
-```python
-class Solution:
-    def lowestCommonAncestor(
-        self, root: TreeNode, p: TreeNode, q: TreeNode
-    ) -> TreeNode:
-        """
-        Binary Tree (BSTでなくてもOK) における p と q の LCA を求める。
-        
-        考え方:
-        - 再帰的に左右の部分木を探索し、p または q を見つけたらそのノードを返す
-        - 左右両方から結果が返ってきたら、現在のノードが LCA
-        - 片方だけから返ってきたら、その結果をそのまま上に返す
-        """
-        # ベースケース: 現在のノードが p または q なら、それ自体を返す
-        if root is p or root is q:
-            return root
-        
-        # 左右の部分木を探索
-        left_result = None
-        right_result = None
-        
-        if root.left is not None:
-            left_result = self.lowestCommonAncestor(root.left, p, q)
-        
-        if root.right is not None:
-            right_result = self.lowestCommonAncestor(root.right, p, q)
-        
-        # 左右両方で見つかった場合、現在のノードが LCA
-        if left_result is not None and right_result is not None:
-            return root
-        
-        # 片方だけで見つかった場合、その結果を返す
-        if left_result is not None:
-            return left_result
-        
-        return right_result
-```
-
-**動作の流れ（例）**
-
-```
-        3
-       / \
-      5   1
-     / \
-    6   2
-        ↑p  ↑q (p=6, q=2 とする)
-```
-
-1. `root=3`: 左部分木を探索 → `left_result=5`、右部分木 → `right_result=None`
-2. `root=5`: 左部分木 → `left_result=6(=p)`、右部分木 → `right_result=2(=q)`
-3. 両方見つかったので `root=5` が LCA として返る
-4. `root=3` に戻ると `left_result=5`, `right_result=None` なので `5` を返す
-
-**計算量**
-
-- Time: O(n) — 最悪で全ノードを訪問
-- Space: O(h) — 再帰スタックの深さ（h は木の高さ）
-
-**あなたの実装2との比較**
-
-| 観点 | 実装2（経路保存） | この実装（再帰） |
-|------|------------------|-----------------|
-| 空間計算量 | O(n) — 経路をリストで保存 | O(h) — 再帰スタックのみ |
-| コード量 | 多い（get_paths_to + get_lca） | 少ない |
-| 拡張性 | 3つ以上のノードに対応しやすい | 2ノード専用 |
-| 可読性 | 経路が明示的で理解しやすい | 再帰の動きを追う必要あり |
-
-**Q:** レビュワーが提示した元のコードの再帰関数のアルゴリズムの意味は「p, qのうち、木内にあるものについてのLCAを返す」ということですね。
+🙋**Q:** レビュワーが提示した元のコードの再帰関数のアルゴリズムの意味は「p, qのうち、木内にあるものについてのLCAを返す」ということですね。
 
 ユースケース次第では許容されることもありそうですが、この関数のユースケースはどんなものが考えられますか？
 
 
-**A:**
+🤖**A:**
 なるほど、面白い視点ですね！「p, q のうち存在するものに対する LCA を返す」という動作が**意図的に有用**なケースを考えてみます。
 
 **ユースケース1: フォールバック付き検索**
@@ -584,6 +512,15 @@ p_not_in_tree = TreeNode(val=999)  # 木に存在しないノード
 q_not_in_tree = TreeNode(val=888)  # 木に存在しないノード
 ```
 
+```
+
+     5
+    / \
+   3   7
+  / \
+ 2   4
+```
+
 ```python
 s = Solution()
 
@@ -601,4 +538,32 @@ for name, p, q in test_cases:
     result = s.lowestCommonAncestor(root, p, q)
     print(f"Result: {result.val if result else None}")
 
+```
+
+```
+
+=== ケース1: p, q 両方存在 ===
+Result: 3
+
+=== ケース2: p のみ存在、q は木に存在しない ===
+WARNING: node q (val=999) not found in the tree
+Result: 3
+
+=== ケース3: p, q 両方とも木に存在しない ===
+WARNING: node p (val=999) not found in the tree
+WARNING: node q (val=888) not found in the tree
+Result: None
+
+=== ケース4: p が None ===
+WARNING: p is None, will be ignored
+Result: 2
+
+=== ケース5: q が None ===
+WARNING: q is None, will be ignored
+Result: 3
+
+=== ケース6: p, q 両方 None ===
+WARNING: p is None, will be ignored
+WARNING: q is None, will be ignored
+Result: None
 ```
