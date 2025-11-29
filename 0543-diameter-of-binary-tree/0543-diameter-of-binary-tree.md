@@ -55,6 +55,55 @@ class Solution:
   - 再帰関数に頼ってしまったものの、割とスムーズに引き継ぎの方針を立てることができた。
   - 次にiterativeで書きたい。
 
+### 実装2
+
+- 実装の検討
+  - iterativeで書く
+  - 部分木からの引き継ぎの置き場を空リスト（または任意のmutableなオブジェクト）とする。
+  - 引き継ぎ結果がない場合は引き継ぎの依頼を出し、左右ともに終わっていたら両者からの引き継ぎをもとに自分が仕事をする。
+  - ただし、自分がNoneノードの場合、引き継ぎ依頼を出す必要がなく、即座に仕事をする。
+
+```python
+from typing import Optional
+
+
+class Solution:
+    def diameterOfBinaryTree(self, root: Optional[TreeNode]) -> int:
+        result = []
+        stack = [(root, [], [], result)]
+        while stack:
+            node, left_output, right_output, output = stack[-1]
+
+            if node is None:
+                output[:] = 0, 0
+                stack.pop()
+                continue
+            
+            if not left_output:
+                stack.append((node.left, [], [], left_output))
+            if not right_output:
+                stack.append((node.right, [], [], right_output))
+            if not (left_output and right_output):
+                continue
+            
+            left_diameter, left_depth = left_output
+            right_diameter, right_depth = right_output
+            diameter = max(
+                left_diameter, right_diameter, left_depth + right_depth
+            )
+            depth = max(left_depth, right_depth) + 1
+            output[:] = diameter, depth
+            stack.pop()
+
+        return result[0]
+
+```
+
+- 10分で書けた。
+- 振り返り
+  - 迷いなく書けるようになっており成長を感じた。
+  - これまでの経験的には他の計算順序でもできそうだが、Step 2に回す。
+
 ## Step 2
 
 - LLMレビューの感想
