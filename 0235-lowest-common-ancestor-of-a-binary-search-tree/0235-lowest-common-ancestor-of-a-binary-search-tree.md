@@ -337,16 +337,268 @@ class Solution:
 
 ## Step 4
 
-自分のPR：（自分のPRへのリンク）
+自分のPR：https://github.com/docto-rin/leetcode/pull/66
 
-**Q:** それぞれのレビューコメントについて、もう少し詳しく教えてください。
+**Q:** 単なる Binary Tree 向けの別解について、リファクタして丁寧に書いてください。なお、三項演算子は使わないようにし、ノードがNoneどうかについては、 if ... is not Noneを使用してください 
+
+
+**A:**
+```python
+class Solution:
+    def lowestCommonAncestor(
+        self, root: TreeNode, p: TreeNode, q: TreeNode
+    ) -> TreeNode:
+        """
+        Binary Tree (BSTでなくてもOK) における p と q の LCA を求める。
+        
+        考え方:
+        - 再帰的に左右の部分木を探索し、p または q を見つけたらそのノードを返す
+        - 左右両方から結果が返ってきたら、現在のノードが LCA
+        - 片方だけから返ってきたら、その結果をそのまま上に返す
+        """
+        # ベースケース: 現在のノードが p または q なら、それ自体を返す
+        if root is p or root is q:
+            return root
+        
+        # 左右の部分木を探索
+        left_result = None
+        right_result = None
+        
+        if root.left is not None:
+            left_result = self.lowestCommonAncestor(root.left, p, q)
+        
+        if root.right is not None:
+            right_result = self.lowestCommonAncestor(root.right, p, q)
+        
+        # 左右両方で見つかった場合、現在のノードが LCA
+        if left_result is not None and right_result is not None:
+            return root
+        
+        # 片方だけで見つかった場合、その結果を返す
+        if left_result is not None:
+            return left_result
+        
+        return right_result
+```
+
+**動作の流れ（例）**
+
+```
+        3
+       / \
+      5   1
+     / \
+    6   2
+        ↑p  ↑q (p=6, q=2 とする)
+```
+
+1. `root=3`: 左部分木を探索 → `left_result=5`、右部分木 → `right_result=None`
+2. `root=5`: 左部分木 → `left_result=6(=p)`、右部分木 → `right_result=2(=q)`
+3. 両方見つかったので `root=5` が LCA として返る
+4. `root=3` に戻ると `left_result=5`, `right_result=None` なので `5` を返す
+
+**計算量**
+
+- Time: O(n) — 最悪で全ノードを訪問
+- Space: O(h) — 再帰スタックの深さ（h は木の高さ）
+
+**あなたの実装2との比較**
+
+| 観点 | 実装2（経路保存） | この実装（再帰） |
+|------|------------------|-----------------|
+| 空間計算量 | O(n) — 経路をリストで保存 | O(h) — 再帰スタックのみ |
+| コード量 | 多い（get_paths_to + get_lca） | 少ない |
+| 拡張性 | 3つ以上のノードに対応しやすい | 2ノード専用 |
+| 可読性 | 経路が明示的で理解しやすい | 再帰の動きを追う必要あり |
+
+**Q:** レビュワーが提示した元のコードの再帰関数のアルゴリズムの意味は「p, qのうち、木内にあるものについてのLCAを返す」ということですね。
+
+ユースケース次第では許容されることもありそうですが、この関数のユースケースはどんなものが考えられますか？
+
+
+**A:**
+なるほど、面白い視点ですね！「p, q のうち存在するものに対する LCA を返す」という動作が**意図的に有用**なケースを考えてみます。
+
+**ユースケース1: フォールバック付き検索**
+
+ファイルシステムやDOM操作で「2つの要素の共通祖先を取得するが、片方が削除されていても動作を続けたい」場合：
+
+```python
+# 例: 2つのファイルの共通ディレクトリを取得
+# 片方が削除されていたら、もう片方のディレクトリを返す
+common_dir = find_common_ancestor(root, file_a, file_b)
+```
+
+**ユースケース2: Optional なターゲット**
+
+「メインターゲット p は必須、サブターゲット q はあれば考慮」というケース：
+
+```python
+# 例: ユーザーの現在位置 p と、お気に入り地点 q の共通祖先（地域）を取得
+# お気に入りが未設定（木に存在しない）なら、現在位置をそのまま返す
+region = get_common_region(map_tree, current_location, favorite_location)
+```
+
+**ユースケース3: マージ操作**
+
+Git のようなバージョン管理で、ブランチの共通祖先を探すとき：
+
+```python
+# 片方のブランチが既に削除されていても、もう片方の履歴は取得できる
+merge_base = find_merge_base(commit_tree, branch_a_head, branch_b_head)
+```
+
+**ユースケース4: Graceful degradation**
+
+堅牢性を重視するシステムで「できる範囲で最善の結果を返す」方針：
+
+```python
+# 両方あれば LCA、片方なら存在する方、両方なければ None
+# 呼び出し側が None チェックして対応する
+result = find_lca_or_available(tree, node_a, node_b)
+if result is None:
+    handle_not_found()
+```
+
+---
+
+**ただし注意点**
+
+これらのユースケースでは、**呼び出し側が「片方しか見つからない可能性がある」ことを理解している**前提です。
+
+関数名やドキュメントで明示しないと危険：
+
+```python
+# 良い命名例
+def find_lca_or_existing_node(root, p, q) -> TreeNode | None:
+    """
+    Returns:
+    - LCA if both p and q exist
+    - p if only p exists
+    - q if only q exists  
+    - None if neither exists
+    """
+```
+
+LeetCode の問題では「p, q は必ず存在する」という前提なので、この動作の違いは表面化しません。しかし実務では、**関数の契約（何を保証するか）を明確にする**ことが重要ですね。
 
 ### 実装5
 
-- レビューを受けて書き直し
-  - （修正点）
+- レビューを受けて書き直し（BSTではなく単なるBinary Treeの場合）
+  - https://github.com/docto-rin/leetcode/pull/66#discussion_r2571495973
+    - bottom-up recursiveで書くことで、path全体ではなくLCAだけを追えば十分になる。
+    - 再帰関数のアルゴリズムの意味は「p, qのうち、木内にあるものについてのLCAを返す」になる。
+    - p, qがroot木内にない場合で意図しない挙動になるのを防ぐために、loggerなどにWARNINGを出すと良さそう。
+      - これはprint文で再現する。
+- 計算量
+  - Time: O(n)
+  - Extra Space: O(n)
 
 ```python
+from typing import Optional
+
+
 class Solution:
-    pass
+    def lowestCommonAncestor(
+        self, root: TreeNode, p: TreeNode, q: TreeNode
+    ) -> TreeNode:
+        self.p = p
+        self.q = q
+        self.found_p = False
+        self.found_q = False
+
+        if p is None:
+            print("WARNING: p is None, will be ignored")
+            self.found_p = True
+        if q is None:
+            print("WARNING: q is None, will be ignored")
+            self.found_q = True
+        
+        result = self._get_lca_or_existing_node(root)
+        
+        if not self.found_p:
+            print(f"WARNING: node p (val={p.val}) not found in the tree")
+        if not self.found_q:
+            print(f"WARNING: node q (val={q.val}) not found in the tree")
+        
+        return result
+    
+    def _get_lca_or_existing_node(self, root: TreeNode) -> Optional[TreeNode]:
+        """
+        Returns:
+        - LCA if both p and q exist
+        - p if only p exists
+        - q if only q exists  
+        - None if neither exists
+        """
+        if root is None:
+            return None
+        
+        left_result = self._get_lca_or_existing_node(root.left)
+        right_result = self._get_lca_or_existing_node(root.right)
+
+        is_p = root is self.p
+        is_q = root is self.q
+        
+        if is_p:
+            self.found_p = True
+        if is_q:
+            self.found_q = True
+
+        if is_p or is_q:
+            return root
+        
+        if left_result is not None and right_result is not None:
+            return root
+        
+        if left_result is not None:
+            return left_result
+        return right_result
+
+```
+
+```python
+# テスト用の木を作成
+tree_image = r"""
+     5
+    / \
+   3   7
+  / \
+ 2   4
+"""
+print(tree_image)
+
+root = TreeNode(
+    val=5,
+    left=TreeNode(
+        val=3,
+        left=TreeNode(val=2),
+        right=TreeNode(val=4)
+    ),
+    right=TreeNode(val=7)
+)
+
+p_exists = root.left               # val=3
+q_exists = root.left.left          # val=2
+p_not_in_tree = TreeNode(val=999)  # 木に存在しないノード
+q_not_in_tree = TreeNode(val=888)  # 木に存在しないノード
+```
+
+```python
+s = Solution()
+
+test_cases = [
+    ("ケース1: p, q 両方存在", p_exists, q_exists),
+    ("ケース2: p のみ存在、q は木に存在しない", p_exists, p_not_in_tree),
+    ("ケース3: p, q 両方とも木に存在しない", p_not_in_tree, q_not_in_tree),
+    ("ケース4: p が None", None, q_exists),
+    ("ケース5: q が None", p_exists, None),
+    ("ケース6: p, q 両方 None", None, None),
+]
+
+for name, p, q in test_cases:
+    print(f"\n=== {name} ===")
+    result = s.lowestCommonAncestor(root, p, q)
+    print(f"Result: {result.val if result else None}")
+
 ```
